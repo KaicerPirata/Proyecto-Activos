@@ -75,7 +75,7 @@ export default function UsersPage() {
                   Nuevo Usuario
                 </Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-[725px]">
+              <DialogContent className="w-[90vw] max-w-[90vw] md:w-full md:max-w-[725px] rounded-lg">
                 <DialogHeader>
                   <DialogTitle className="text-2xl font-headline text-center pt-12">Crear una cuenta</DialogTitle>
                   <DialogDescription className="text-center">

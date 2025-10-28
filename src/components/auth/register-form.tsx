@@ -65,124 +65,116 @@ export default function RegisterForm({ onRegisterSuccess }: { onRegisterSuccess?
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 px-6 pb-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField
+      <form onSubmit={form.handleSubmit(onSubmit)} className="grid grid-cols-1 md:grid-cols-2 gap-4 px-6 pb-6">
+        <FormField
+          control={form.control}
+          name="idNumber"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Número de identificación</FormLabel>
+              <FormControl>
+                <Input placeholder="123456789" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="email"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Correo electrónico</FormLabel>
+              <FormControl>
+                <Input placeholder="nombre@empresa.com" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="firstName"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Primer nombre</FormLabel>
+              <FormControl>
+                <Input placeholder="John" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="middleName"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Segundo nombre (Opcional)</FormLabel>
+              <FormControl>
+                <Input placeholder="Fitzgerald" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
             control={form.control}
-            name="idNumber"
+            name="lastName"
             render={({ field }) => (
-              <FormItem>
-                <FormLabel>Número de identificación</FormLabel>
+            <FormItem>
+                <FormLabel>Primer apellido</FormLabel>
                 <FormControl>
-                  <Input placeholder="123456789" {...field} />
+                <Input placeholder="Doe" {...field} />
                 </FormControl>
                 <FormMessage />
-              </FormItem>
+            </FormItem>
             )}
-          />
-          <FormField
+        />
+        <FormField
             control={form.control}
-            name="email"
+            name="secondLastName"
             render={({ field }) => (
-              <FormItem>
-                <FormLabel>Correo electrónico</FormLabel>
+            <FormItem>
+                <FormLabel>Segundo apellido (Opcional)</FormLabel>
                 <FormControl>
-                  <Input placeholder="nombre@empresa.com" {...field} />
+                <Input placeholder="Smith" {...field} />
                 </FormControl>
                 <FormMessage />
-              </FormItem>
+            </FormItem>
             )}
-          />
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-           <FormField
+        />
+        <FormField
             control={form.control}
-            name="firstName"
+            name="city"
             render={({ field }) => (
-              <FormItem>
-                <FormLabel>Primer nombre</FormLabel>
+            <FormItem>
+                <FormLabel>Ciudad</FormLabel>
                 <FormControl>
-                  <Input placeholder="John" {...field} />
+                <Input placeholder="Bogotá" {...field} />
                 </FormControl>
                 <FormMessage />
-              </FormItem>
+            </FormItem>
             )}
-          />
-          <FormField
+        />
+        <FormField
             control={form.control}
-            name="middleName"
+            name="location"
             render={({ field }) => (
-              <FormItem>
-                <FormLabel>Segundo nombre (Opcional)</FormLabel>
+            <FormItem>
+                <FormLabel>Ubicación</FormLabel>
                 <FormControl>
-                  <Input placeholder="Fitzgerald" {...field} />
+                <Input placeholder="Cra 1 # 1-1, Zona Centro" {...field} />
                 </FormControl>
                 <FormMessage />
-              </FormItem>
+            </FormItem>
             )}
-          />
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormField
-                control={form.control}
-                name="lastName"
-                render={({ field }) => (
-                <FormItem>
-                    <FormLabel>Primer apellido</FormLabel>
-                    <FormControl>
-                    <Input placeholder="Doe" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                </FormItem>
-                )}
-            />
-            <FormField
-                control={form.control}
-                name="secondLastName"
-                render={({ field }) => (
-                <FormItem>
-                    <FormLabel>Segundo apellido (Opcional)</FormLabel>
-                    <FormControl>
-                    <Input placeholder="Smith" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                </FormItem>
-                )}
-            />
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormField
-                control={form.control}
-                name="city"
-                render={({ field }) => (
-                <FormItem>
-                    <FormLabel>Ciudad</FormLabel>
-                    <FormControl>
-                    <Input placeholder="Bogotá" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                </FormItem>
-                )}
-            />
-            <FormField
-                control={form.control}
-                name="location"
-                render={({ field }) => (
-                <FormItem>
-                    <FormLabel>Ubicación</FormLabel>
-                    <FormControl>
-                    <Input placeholder="Cra 1 # 1-1, Zona Centro" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                </FormItem>
-                )}
-            />
-        </div>
+        />
         <FormField
             control={form.control}
             name="department"
             render={({ field }) => (
-                <FormItem>
+                <FormItem className="md:col-span-2">
                 <FormLabel>Área o departamento</FormLabel>
                 <FormControl>
                     <Input placeholder="Tecnología" {...field} />
@@ -195,7 +187,7 @@ export default function RegisterForm({ onRegisterSuccess }: { onRegisterSuccess?
           control={form.control}
           name="password"
           render={({ field }) => (
-            <FormItem>
+            <FormItem className="md:col-span-2">
               <FormLabel>Contraseña</FormLabel>
               <FormControl>
                 <Input type="password" placeholder="********" {...field} />
@@ -204,9 +196,11 @@ export default function RegisterForm({ onRegisterSuccess }: { onRegisterSuccess?
             </FormItem>
           )}
         />
-        <Button type="submit" className="w-full bg-primary hover:bg-primary/90">
-          Registrar
-        </Button>
+        <div className="md:col-span-2">
+            <Button type="submit" className="w-full bg-primary hover:bg-primary/90">
+            Registrar
+            </Button>
+        </div>
       </form>
     </Form>
   );
