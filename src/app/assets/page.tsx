@@ -179,6 +179,17 @@ function AssetForm({ assetType, onRegisterSuccess, onBack }: { assetType: 'Equip
     }
   }
 
+  const getPlaceholder = () => {
+    switch (assetType) {
+        case 'Equipo de cómputo':
+            return 'LAPTOP-001';
+        case 'Monitor':
+            return 'MONITOR-001';
+        case 'UPS':
+            return 'UPS-001';
+    }
+  }
+
   return (
     <>
         <Button variant="ghost" onClick={onBack} className="absolute left-4 top-4">
@@ -195,7 +206,7 @@ function AssetForm({ assetType, onRegisterSuccess, onBack }: { assetType: 'Equip
                 <FormItem>
                 <FormLabel>Activo / Nombre</FormLabel>
                 <FormControl>
-                    <Input placeholder={isComputer ? "LAPTOP-001" : "MONITOR-001"} {...field} />
+                    <Input placeholder={getPlaceholder()} {...field} />
                 </FormControl>
                 <FormMessage />
                 </FormItem>
