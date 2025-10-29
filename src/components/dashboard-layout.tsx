@@ -58,7 +58,7 @@ const DashboardLayout: FC<{ children: ReactNode }> = ({ children }) => {
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={isActive('/assets')} tooltip="Activos">
-                  <Link href="#">
+                  <Link href="/assets">
                     <Archive />
                     <span>Activos</span>
                   </Link>
