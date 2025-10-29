@@ -99,6 +99,7 @@ const computerAssetSchema = z.object({
   processor: z.string().min(1, 'El procesador es requerido.'),
   ram: z.string().min(1, 'La memoria RAM es requerida.'),
   storage: z.string().min(1, 'El disco duro es requerido.'),
+  responsable: z.string().min(1, 'El responsable es requerido.'),
   officeVersion: z.enum([
     'MICROSOFT OFFICE HOGAR Y EMPRESAS 2007',
     'MICROSOFT OFFICE HOGAR Y EMPRESAS 2010',
@@ -121,6 +122,7 @@ const simpleAssetSchema = z.object({
     purchaseDate: z.date({ required_error: 'La fecha de compra es requerida.' }),
     brand: z.string().min(1, 'La marca es requerida.'),
     model: z.string().min(1, 'El modelo es requerido.'),
+    responsable: z.string().min(1, 'El responsable es requerido.'),
     description: z.string().optional(),
 });
 
@@ -146,6 +148,7 @@ function AssetForm({ assetType, onRegisterSuccess, onBack }: { assetType: 'Equip
       processor: '',
       ram: '',
       storage: '',
+      responsable: '',
       officeKey: '',
       osKey: '',
     } : {
@@ -154,6 +157,7 @@ function AssetForm({ assetType, onRegisterSuccess, onBack }: { assetType: 'Equip
       invoiceNumber: '',
       brand: '',
       model: '',
+      responsable: '',
       description: '',
     },
   });
@@ -387,7 +391,20 @@ function AssetForm({ assetType, onRegisterSuccess, onBack }: { assetType: 'Equip
                 </FormItem>
             )}
             />
-             <div className="md:col-span-3" />
+             <FormField
+                control={form.control}
+                name="responsable"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Responsable</FormLabel>
+                    <FormControl>
+                        <Input placeholder="John Doe" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                    </FormItem>
+                )}
+            />
+            <div className="md:col-span-3" />
             <FormField
             control={form.control}
             name="officeVersion"
@@ -466,6 +483,20 @@ function AssetForm({ assetType, onRegisterSuccess, onBack }: { assetType: 'Equip
 
             {/* Simple form specific fields */}
             {!isComputer && (
+                <>
+                 <FormField
+                    control={form.control}
+                    name="responsable"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Responsable</FormLabel>
+                        <FormControl>
+                            <Input placeholder="John Doe" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                />
                 <FormField
                     control={form.control}
                     name="description"
@@ -483,6 +514,7 @@ function AssetForm({ assetType, onRegisterSuccess, onBack }: { assetType: 'Equip
                         </FormItem>
                     )}
                 />
+                </>
             )}
 
 
