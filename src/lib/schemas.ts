@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 export const registerSchema = z.object({
+    company: z.string().min(1, { message: "La empresa es requerida." }),
     idNumber: z.string().min(1, { message: "El número de identificación es requerido." }),
     firstName: z.string().min(1, { message: "El primer nombre es requerido." }),
     middleName: z.string().optional(),
