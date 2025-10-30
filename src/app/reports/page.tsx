@@ -107,7 +107,7 @@ export default function ReportsPage() {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="">Todos</SelectItem>
+                              
                               {users.map(user => (
                                 <SelectItem key={user.id} value={user.name}>{user.name}</SelectItem>
                               ))}
@@ -130,7 +130,7 @@ export default function ReportsPage() {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="">Todas</SelectItem>
+                              
                               <SelectItem value="equipo-de-computo">Equipo de Cómputo</SelectItem>
                               <SelectItem value="monitor">Monitor</SelectItem>
                               <SelectItem value="ups">UPS</SelectItem>
@@ -280,7 +280,7 @@ export default function ReportsPage() {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="">Todos</SelectItem>
+                              
                               <SelectItem value="Windows 10 Pro">Windows 10 Pro</SelectItem>
                               <SelectItem value="Windows 11 Pro">Windows 11 Pro</SelectItem>
                             </SelectContent>
@@ -302,7 +302,7 @@ export default function ReportsPage() {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                                <SelectItem value="">Todas</SelectItem>
+                                
                                 <SelectItem value="MICROSOFT OFFICE HOGAR Y EMPRESAS 2007">Office 2007</SelectItem>
                                 <SelectItem value="MICROSOFT OFFICE HOGAR Y EMPRESAS 2010">Office 2010</SelectItem>
                                 <SelectItem value="MICROSOFT OFFICE HOGAR Y EMPRESAS 2013">Office 2013</SelectItem>
