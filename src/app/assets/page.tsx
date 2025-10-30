@@ -53,6 +53,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
 import AssetHistory from '@/components/dashboard/asset-history';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 // Mock data for assets
 const assets = [
@@ -62,6 +64,15 @@ const assets = [
     category: 'Computadores',
     status: 'Asignado',
     company: 'PALLOMARO S.A',
+    responsable: 'John Doe',
+    serialNumber: 'DXG-12345-ABC',
+    purchaseDate: '2023-01-15',
+    brand: 'Dell',
+    model: 'XPS 15',
+    processor: 'Intel Core i7-11800H',
+    ram: '16 GB DDR4',
+    storage: '1 TB SSD NVMe',
+    os: 'Windows 11 Pro',
   },
   {
     id: 'MON-002',
@@ -69,6 +80,11 @@ const assets = [
     category: 'Monitores',
     status: 'En Almacén',
     company: 'HYCO',
+    responsable: 'Almacén',
+    serialNumber: 'LGM-98765-XYZ',
+    purchaseDate: '2022-11-30',
+    brand: 'LG',
+    model: '29WL500-B',
   },
   {
     id: 'SFT-003',
@@ -76,6 +92,11 @@ const assets = [
     category: 'Software',
     status: 'Asignado',
     company: 'PALLOMARO S.A',
+    responsable: 'Jane Smith',
+    serialNumber: 'N/A',
+    purchaseDate: '2024-03-01',
+    brand: 'Adobe',
+    model: 'Creative Cloud',
   },
 ];
 
@@ -139,6 +160,101 @@ const simpleAssetSchema = z.object({
 type ComputerAssetSchema = z.infer<typeof computerAssetSchema>;
 type SimpleAssetSchema = z.infer<typeof simpleAssetSchema>;
 
+const addHistorySchema = z.object({
+    description: z.string().min(1, 'La descripción es requerida.'),
+    type: z.enum(['Mantenimiento', 'Incidente'], {
+        required_error: 'Debes seleccionar un tipo de registro.',
+    }),
+});
+
+type AddHistorySchema = z.infer<typeof addHistorySchema>;
+
+function AddHistoryForm({ assetId, onSaveSuccess }: { assetId: string, onSaveSuccess: () => void }) {
+    const { toast } = useToast();
+    const form = useForm<AddHistorySchema>({
+        resolver: zodResolver(addHistorySchema),
+        defaultValues: {
+            description: '',
+            type: 'Incidente',
+        },
+    });
+
+    function onSubmit(data: AddHistorySchema) {
+        try {
+            console.log('New history entry for asset', assetId, data);
+            toast({
+                title: 'Historial Añadido',
+                description: 'El nuevo registro ha sido guardado correctamente.',
+            });
+            form.reset();
+            onSaveSuccess();
+        } catch (error) {
+            console.error('Error adding history:', error);
+            toast({
+                variant: 'destructive',
+                title: 'Error',
+                description: 'No se pudo guardar el registro. Inténtalo de nuevo.',
+            });
+        }
+    }
+
+    return (
+        <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                <FormField
+                    control={form.control}
+                    name="type"
+                    render={({ field }) => (
+                        <FormItem className="space-y-3">
+                            <FormLabel>Tipo de Registro</FormLabel>
+                            <FormControl>
+                                <RadioGroup
+                                    onValueChange={field.onChange}
+                                    defaultValue={field.value}
+                                    className="flex items-center space-x-4"
+                                >
+                                    <FormItem className="flex items-center space-x-2 space-y-0">
+                                        <FormControl>
+                                            <RadioGroupItem value="Mantenimiento" />
+                                        </FormControl>
+                                        <FormLabel className="font-normal">Mantenimiento</FormLabel>
+                                    </FormItem>
+                                    <FormItem className="flex items-center space-x-2 space-y-0">
+                                        <FormControl>
+                                            <RadioGroupItem value="Incidente" />
+                                        </FormControl>
+                                        <FormLabel className="font-normal">Incidente / Intervención</FormLabel>
+                                    </FormItem>
+                                </RadioGroup>
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                <FormField
+                    control={form.control}
+                    name="description"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Descripción del Trabajo Realizado</FormLabel>
+                            <FormControl>
+                                <Textarea
+                                    placeholder="Detalla aquí el mantenimiento, instalación o incidente ocurrido con el equipo..."
+                                    className="resize-y min-h-[150px]"
+                                    {...field}
+                                />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                <div className="flex justify-end">
+                    <Button type="submit">Guardar Registro</Button>
+                </div>
+            </form>
+        </Form>
+    );
+}
 
 function AssetForm({ assetType, onRegisterSuccess, onBack }: { assetType: 'Equipo de cómputo' | 'Monitor' | 'UPS', onRegisterSuccess?: () => void, onBack: () => void }) {
   const { toast } = useToast();
@@ -587,15 +703,28 @@ function AssetTypeSelector({ onSelect, onCancel }: { onSelect: (type: 'Equipo de
 
 export default function ActivosPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isHistoryDialogOpen, setIsHistoryDialogOpen] = useState(false);
+  const [selectedAssetIdForHistory, setSelectedAssetIdForHistory] = useState<string | null>(null);
   const [selectedAssetType, setSelectedAssetType] = useState<'Equipo de cómputo' | 'Monitor' | 'UPS' | null>(null);
 
   const handleDialogChange = (open: boolean) => {
     if (!open) {
-        // Reset asset type selection when dialog is closed
         setSelectedAssetType(null);
     }
     setIsDialogOpen(open);
   }
+
+  const handleHistoryDialogChange = (open: boolean) => {
+    if (!open) {
+        setSelectedAssetIdForHistory(null);
+    }
+    setIsHistoryDialogOpen(open);
+  }
+  
+  const handleOpenHistoryDialog = (assetId: string) => {
+    setSelectedAssetIdForHistory(assetId);
+    setIsHistoryDialogOpen(true);
+  };
 
   const handleRegisterSuccess = () => {
     setIsDialogOpen(false);
@@ -677,29 +806,66 @@ export default function ActivosPage() {
                                 </Badge>
                                 </TableCell>
                                 <TableCell className="flex justify-end gap-2">
-                                  <Dialog>
-                                      <DialogTrigger asChild>
-                                          <Button variant="outline" size="sm">
-                                              <Eye className="mr-2 h-4 w-4" />
-                                              Ver Equipo
-                                          </Button>
-                                      </DialogTrigger>
-                                      <DialogContent className="w-[90vw] max-w-[90vw] md:w-full md:max-w-4xl rounded-lg max-h-[90vh] overflow-y-auto">
-                                          <DialogHeader>
-                                              <DialogTitle className="text-2xl font-headline">Detalles del Activo: {asset.name}</DialogTitle>
-                                              <DialogDescription>
-                                                  Información completa y registros de mantenimiento.
-                                              </DialogDescription>
-                                          </DialogHeader>
-                                          <div className="py-4">
-                                            <AssetHistory assetId={asset.id}/>
-                                          </div>
-                                      </DialogContent>
-                                  </Dialog>
-                                  <Button variant="secondary" size="sm">
-                                      <ClipboardPlus className="mr-2 h-4 w-4" />
-                                      Añadir Historial
-                                  </Button>
+                                    <TooltipProvider>
+                                        <Dialog>
+                                            <Tooltip>
+                                                <TooltipTrigger asChild>
+                                                    <DialogTrigger asChild>
+                                                        <Button variant="outline" size="icon">
+                                                            <Eye className="h-4 w-4" />
+                                                        </Button>
+                                                    </DialogTrigger>
+                                                </TooltipTrigger>
+                                                <TooltipContent>
+                                                    <p>Ver Equipo</p>
+                                                </TooltipContent>
+                                            </Tooltip>
+                                            <DialogContent className="w-[90vw] max-w-[90vw] md:w-full md:max-w-4xl rounded-lg max-h-[90vh] overflow-y-auto">
+                                                <DialogHeader>
+                                                    <DialogTitle className="text-2xl font-headline">Detalles del Activo: {asset.name}</DialogTitle>
+                                                    <DialogDescription>
+                                                        Información completa y registros de mantenimiento.
+                                                    </DialogDescription>
+                                                </DialogHeader>
+                                                <div className="py-4 space-y-6">
+                                                    <Card>
+                                                        <CardHeader>
+                                                            <CardTitle className="text-xl">Especificaciones Técnicas</CardTitle>
+                                                        </CardHeader>
+                                                        <CardContent>
+                                                            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+                                                                <div><span className="font-semibold">ID Activo: </span>{asset.id}</div>
+                                                                <div><span className="font-semibold">Categoría: </span>{asset.category}</div>
+                                                                <div><span className="font-semibold">Estado: </span>{asset.status}</div>
+                                                                <div><span className="font-semibold">Empresa: </span>{asset.company}</div>
+                                                                <div><span className="font-semibold">Responsable: </span>{asset.responsable}</div>
+                                                                <div><span className="font-semibold">Nº de Serie: </span>{asset.serialNumber}</div>
+                                                                <div><span className="font-semibold">Fecha Compra: </span>{asset.purchaseDate}</div>
+                                                                <div><span className="font-semibold">Marca: </span>{asset.brand}</div>
+                                                                <div><span className="font-semibold">Modelo: </span>{asset.model}</div>
+                                                                {asset.processor && <div><span className="font-semibold">Procesador: </span>{asset.processor}</div>}
+                                                                {asset.ram && <div><span className="font-semibold">RAM: </span>{asset.ram}</div>}
+                                                                {asset.storage && <div><span className="font-semibold">Almacenamiento: </span>{asset.storage}</div>}
+                                                                {asset.os && <div><span className="font-semibold">S.O.: </span>{asset.os}</div>}
+                                                            </div>
+                                                        </CardContent>
+                                                    </Card>
+                                                    <AssetHistory assetId={asset.id}/>
+                                                </div>
+                                            </DialogContent>
+                                        </Dialog>
+
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <Button variant="secondary" size="icon" onClick={() => handleOpenHistoryDialog(asset.id)}>
+                                                    <ClipboardPlus className="h-4 w-4" />
+                                                </Button>
+                                            </TooltipTrigger>
+                                            <TooltipContent>
+                                                <p>Añadir Historial</p>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </TooltipProvider>
                                 </TableCell>
                             </TableRow>
                             ))}
@@ -752,8 +918,24 @@ export default function ActivosPage() {
           </Tabs>
         </main>
       </div>
+      <Dialog open={isHistoryDialogOpen} onOpenChange={handleHistoryDialogChange}>
+            <DialogContent className="w-[90vw] max-w-[90vw] md:w-full md:max-w-xl rounded-lg">
+                <DialogHeader>
+                    <DialogTitle className="text-2xl font-headline">Añadir Registro al Historial</DialogTitle>
+                    <DialogDescription>
+                        Registra un nuevo mantenimiento o incidente para el activo {selectedAssetIdForHistory}.
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="py-4">
+                    {selectedAssetIdForHistory && (
+                        <AddHistoryForm 
+                            assetId={selectedAssetIdForHistory} 
+                            onSaveSuccess={() => handleHistoryDialogChange(false)} 
+                        />
+                    )}
+                </div>
+            </DialogContent>
+        </Dialog>
     </DashboardLayout>
   );
 }
-
-    
