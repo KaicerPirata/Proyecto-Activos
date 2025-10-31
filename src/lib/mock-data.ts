@@ -113,7 +113,7 @@ export const users = [
   ];
 
 export const companies = [
-    { id: 1, name: 'PALLOMARO S.A' },
-    { id: 2, name: 'HYCO' },
-    { id: 3, name: 'FUNDIMETAL' },
+    { id: 1, companyId: 'EMP001', name: 'PALLOMARO S.A', city: 'Cali' },
+    { id: 2, companyId: 'EMP002', name: 'HYCO', city: 'Cali' },
+    { id: 3, companyId: 'EMP003', name: 'FUNDIMETAL', city: 'Cali' },
 ];
