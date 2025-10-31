@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { addMonths, differenceInDays } from 'date-fns';
 import DashboardLayout from '@/components/dashboard-layout';
 import Header from '@/components/dashboard/header';
@@ -13,8 +13,19 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 
 const MAINTENANCE_INTERVAL_MONTHS = 6;
 
+interface MaintenanceTask {
+  id: string;
+  name: string;
+  nextMaintenanceDate: Date;
+  daysUntilMaintenance: number;
+  isOverdue: boolean;
+  [key: string]: any;
+}
+
+
 export default function Home() {
   const [selectedCompany, setSelectedCompany] = useState<string>('all');
+  const [upcomingMaintenanceList, setUpcomingMaintenanceList] = useState<MaintenanceTask[] | null>(null);
 
   const filteredAssets = useMemo(() => {
     if (selectedCompany === 'all') {
@@ -30,7 +41,7 @@ export default function Home() {
     return users.filter(user => user.company === selectedCompany);
   }, [selectedCompany]);
 
-  const upcomingMaintenanceList = useMemo(() => {
+  useEffect(() => {
     const maintenanceTasks = filteredAssets
       .filter(asset => asset.category === 'Equipo de cómputo' || asset.category === 'UPS')
       .map(asset => {
@@ -53,7 +64,7 @@ export default function Home() {
       .filter(asset => asset.daysUntilMaintenance <= (30 * MAINTENANCE_INTERVAL_MONTHS))
       .sort((a, b) => a.daysUntilMaintenance - b.daysUntilMaintenance);
       
-    return maintenanceTasks;
+    setUpcomingMaintenanceList(maintenanceTasks);
   }, [filteredAssets]);
 
   return (
@@ -83,7 +94,7 @@ export default function Home() {
             <SummaryCards 
               totalAssets={filteredAssets.length}
               totalUsers={filteredUsers.length}
-              openTasks={upcomingMaintenanceList.length} 
+              openTasks={upcomingMaintenanceList?.length ?? 0} 
             />
             <div className="grid gap-4 md:gap-8 lg:grid-cols-2 xl:grid-cols-3">
               <div className="xl:col-span-2">

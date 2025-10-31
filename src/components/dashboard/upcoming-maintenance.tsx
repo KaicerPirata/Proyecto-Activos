@@ -1,8 +1,7 @@
 
 'use client';
 
-import { useMemo } from 'react';
-import { addMonths, differenceInDays, format } from 'date-fns';
+import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import {
   Card,
@@ -12,7 +11,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from '@/components/ui/badge';
-import { assets, assetHistory } from '@/lib/mock-data';
 import { AlertCircle } from 'lucide-react';
 import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
@@ -25,7 +23,7 @@ interface MaintenanceTask {
 }
 
 interface UpcomingMaintenanceProps {
-    maintenanceList: MaintenanceTask[];
+    maintenanceList: MaintenanceTask[] | null;
 }
 
 export default function UpcomingMaintenance({ maintenanceList }: UpcomingMaintenanceProps) {
@@ -44,7 +42,9 @@ export default function UpcomingMaintenance({ maintenanceList }: UpcomingMainten
       </CardHeader>
       <CardContent className="grid gap-4">
         <TooltipProvider>
-            {maintenanceList.length > 0 ? (
+            {maintenanceList === null ? (
+                <p className="text-sm text-muted-foreground text-center">Calculando...</p>
+            ) : maintenanceList.length > 0 ? (
                 maintenanceList.map((asset) => (
                 <div className="flex items-center gap-4" key={asset.id}>
                     {asset.isOverdue && (
