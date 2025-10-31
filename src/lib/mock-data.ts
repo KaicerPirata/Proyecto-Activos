@@ -102,14 +102,14 @@ export const deletedAssets = [
 ];
 
 export const users = [
-    { id: '1', name: 'John Doe', company: 'PALLOMARO S.A' },
-    { id: '2', name: 'Jane Smith', company: 'FUNDIMETAL' },
-    { id: '3', name: 'Robert Brown', company: 'HYCO' },
-    { id: '4', name: 'Almacén', company: 'PALLOMARO S.A' },
-    { id: '5', name: 'Washington Palma', company: 'PALLOMARO S.A' },
-    { id: '6', name: 'Johana Fuentes', company: 'PALLOMARO S.A'},
-    { id: '7', name: 'Claudia Moreno', company: 'HYCO'},
-    { id: '8', name: 'Wilson Rojas', company: 'FUNDIMETAL'},
+    { id: '1', name: 'John Doe', company: 'PALLOMARO S.A', department: 'Tecnología' },
+    { id: '2', name: 'Jane Smith', company: 'FUNDIMETAL', department: 'Operaciones' },
+    { id: '3', name: 'Robert Brown', company: 'HYCO', department: 'Ventas' },
+    { id: '4', name: 'Almacén', company: 'PALLOMARO S.A', department: 'Logística' },
+    { id: '5', name: 'Washington Palma', company: 'PALLOMARO S.A', department: 'Tecnología' },
+    { id: '6', name: 'Johana Fuentes', company: 'PALLOMARO S.A', department: 'Administración'},
+    { id: '7', name: 'Claudia Moreno', company: 'HYCO', department: 'Gerencia'},
+    { id: '8', name: 'Wilson Rojas', company: 'FUNDIMETAL', department: 'Producción'},
   ];
 
 export const companies = [
