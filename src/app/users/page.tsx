@@ -81,10 +81,10 @@ const initialUsers = [
   {
     id: 4,
     name: 'William Aguilera',
-    email: 'william.aguilera@example.com',
+    email: 'sistemas@wfm.com',
     role: 'Admin',
     status: 'Active',
-    company: 'PALLOMARO S.A',
+    company: 'WFM',
     idNumber: '444444444',
     firstName: 'William',
     lastName: 'Aguilera',
@@ -95,10 +95,10 @@ const initialUsers = [
   {
     id: 5,
     name: 'Dylam Moralez',
-    email: 'dylam.moralez@example.com',
+    email: 'sistemas@wfm.com',
     role: 'Admin',
     status: 'Active',
-    company: 'FUNDIMETAL',
+    company: 'WFM',
     idNumber: '555555555',
     firstName: 'Dylam',
     lastName: 'Moralez',
@@ -109,14 +109,14 @@ const initialUsers = [
   {
     id: 6,
     name: 'Carlos Fierro',
-    email: 'carlos.fierro@example.com',
+    email: 'sistemas@wfm.com',
     role: 'Admin',
     status: 'Active',
-    company: 'HYCO',
+    company: 'WFM',
     idNumber: '666666666',
     firstName: 'Carlos',
     lastName: 'Fierro',
-    city: 'Cali',
+    city: 'Bogota',
     location: 'Oficina Central',
     department: 'Ventas',
   },
@@ -135,6 +135,10 @@ const companies = [
     {
       id: 3,
       name: 'FUNDIMETAL',
+    },
+    {
+      id: 4,
+      name: 'WFM',
     },
 ];
 
@@ -401,3 +405,5 @@ export default function UsersPage() {
     </DashboardLayout>
   );
 }
+
+    

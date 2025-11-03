@@ -116,4 +116,7 @@ export const companies = [
     { id: 1, companyId: 'EMP001', name: 'PALLOMARO S.A', city: 'Cali' },
     { id: 2, companyId: 'EMP002', name: 'HYCO', city: 'Cali' },
     { id: 3, companyId: 'EMP003', name: 'FUNDIMETAL', city: 'Cali' },
+    { id: 4, companyId: 'EMP004', name: 'WFM', city: 'Cali' },
 ];
+
+    
