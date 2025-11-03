@@ -8,7 +8,7 @@ export const assets = [
     category: 'Equipo de cómputo',
     status: 'Asignado',
     company: 'PALLOMARO S.A',
-    responsable: 'John Doe',
+    responsable: 'William Aguilera',
     city: 'Cali',
     serialNumber: 'DXG-12345-ABC',
     purchaseDate: '2023-01-15',
@@ -44,7 +44,7 @@ export const assets = [
     category: 'UPS',
     status: 'Asignado',
     company: 'FUNDIMETAL',
-    responsable: 'Jane Smith',
+    responsable: 'Dylam Moralez',
     city: 'Cali',
     serialNumber: 'APC-91011-JKL',
     purchaseDate: '2024-03-01',
@@ -59,7 +59,7 @@ export const assets = [
     category: 'Equipo de cómputo',
     status: 'Asignado',
     company: 'HYCO',
-    responsable: 'Robert Brown',
+    responsable: 'Carlos Fierro',
     city: 'Cali',
     serialNumber: 'HP-ELITE-002',
     purchaseDate: '2023-08-20',
@@ -74,16 +74,16 @@ export const assets = [
 
 export const assetHistory = {
     'LAP-001': [
-        { id: '1', date: '2024-03-15', author: 'John Doe', type: 'Mantenimiento', description: 'Limpieza interna y cambio de pasta térmica.' },
-        { id: '2', date: '2024-05-15', author: 'Jane Smith', type: 'Incidente', description: 'El equipo no enciende. Se revisa fuente de poder y se soluciona.' },
+        { id: '1', date: '2024-03-15', author: 'William Aguilera', type: 'Mantenimiento', description: 'Limpieza interna y cambio de pasta térmica.' },
+        { id: '2', date: '2024-05-15', author: 'Dylam Moralez', type: 'Incidente', description: 'El equipo no enciende. Se revisa fuente de poder y se soluciona.' },
     ],
     'MON-002': [
-         { id: '3', date: '2024-02-01', author: 'John Doe', type: 'Instalación', description: 'Instalación de paquete de Adobe Creative Cloud.' },
+         { id: '3', date: '2024-02-01', author: 'William Aguilera', type: 'Instalación', description: 'Instalación de paquete de Adobe Creative Cloud.' },
     ],
     'UPS-001': [
-        { id: '4', date: '2024-07-20', author: 'Almacén', type: 'Asignación', description: 'Activo asignado a Robert Brown (Ventas).' },
+        { id: '4', date: '2024-07-20', author: 'Almacén', type: 'Asignación', description: 'Activo asignado a Carlos Fierro (Ventas).' },
         // This maintenance is overdue to test the logic
-        { id: '5', date: '2024-01-10', author: 'Jane Smith', type: 'Mantenimiento', description: 'Revisión de batería y limpieza.' },
+        { id: '5', date: '2024-01-10', author: 'Dylam Moralez', type: 'Mantenimiento', description: 'Revisión de batería y limpieza.' },
     ],
     'LAP-002': [
         { id: '6', date: '2024-02-25', author: 'Almacén', type: 'Mantenimiento', description: 'Mantenimiento preventivo general.' },
@@ -102,9 +102,9 @@ export const deletedAssets = [
 ];
 
 export const users = [
-    { id: '1', name: 'John Doe', company: 'PALLOMARO S.A', department: 'Tecnología' },
-    { id: '2', name: 'Jane Smith', company: 'FUNDIMETAL', department: 'Operaciones' },
-    { id: '3', name: 'Robert Brown', company: 'HYCO', department: 'Ventas' },
+    { id: '1', name: 'William Aguilera', company: 'PALLOMARO S.A', department: 'Tecnología' },
+    { id: '2', name: 'Dylam Moralez', company: 'FUNDIMETAL', department: 'Operaciones' },
+    { id: '3', name: 'Carlos Fierro', company: 'HYCO', department: 'Ventas' },
     { id: '4', name: 'Almacén', company: 'PALLOMARO S.A', department: 'Logística' },
     { id: '5', name: 'Washington Palma', company: 'PALLOMARO S.A', department: 'Tecnología' },
     { id: '6', name: 'Johana Fuentes', company: 'PALLOMARO S.A', department: 'Administración'},
