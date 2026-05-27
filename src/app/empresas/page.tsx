@@ -1,6 +1,9 @@
 
 'use client';
 
+import { useEffect } from 'react';
+import { companiesService } from '@/services/companies.service';
+import { Company } from '@/types/company.types';
 import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import {
@@ -43,55 +46,68 @@ import { useToast } from '@/hooks/use-toast';
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { companies as initialCompanies } from '@/lib/mock-data';
-
 
 const companySchema = z.object({
-  companyId: z.string().min(1, 'El ID de la empresa es requerido.'),
-  name: z.string().min(1, 'El nombre es requerido.'),
-  city: z.string().min(1, 'La ciudad es requerida.'),
+  company: z.string().min(1, 'El nombre es requerido.'),
 });
 
 type CompanySchema = z.infer<typeof companySchema>;
 
-function CompanyForm({ onSaveSuccess, companyToEdit }: { onSaveSuccess?: () => void, companyToEdit?: CompanySchema | null }) {
+function CompanyForm({ onSaveSuccess, companyToEdit }: { onSaveSuccess?: (company: Company, mode: 'create' | 'edit') => void, companyToEdit?: Company | null }) {
   const { toast } = useToast();
   const isEditMode = !!companyToEdit;
 
   const form = useForm<CompanySchema>({
     resolver: zodResolver(companySchema),
-    defaultValues: companyToEdit || {
-      companyId: '',
-      name: '',
-      city: '',
+    defaultValues: {
+      company: companyToEdit?.company || '',
     },
   });
 
-  function onSubmit(data: CompanySchema) {
+  async function onSubmit(data: CompanySchema) {
     try {
-      if(isEditMode) {
-        console.log('Company data updated:', data);
+      if(isEditMode && companyToEdit) {
+        const updatedCompany = {
+          ...companyToEdit,
+          company: data.company,
+        };
+
+        onSaveSuccess?.(updatedCompany, 'edit');
+        await companiesService.update(Number(companyToEdit.companyId), {company: data.company});
+
         toast({
-          title: 'Actualización Exitosa',
+          title: 'Actualizacion exitosa',
           description: 'La empresa ha sido actualizada correctamente.',
         });
       } else {
-        console.log('Company data submitted:', data);
+        const tempCompany: Company = {
+          companyId: -Date.now(),
+          company: data.company,
+          status: 'A'
+        };
+
+        const realCompany = await companiesService.create({
+          company: data.company
+        });
+
+        onSaveSuccess?.(realCompany, 'edit');
+
         toast({
-          title: 'Registro Exitoso',
-          description: 'La empresa ha sido registrada correctamente.',
+          title: 'Registro exitoso',
+          description: 'La empresa ha sido registrada correctamente'
         });
       }
+
       form.reset();
-      if (onSaveSuccess) {
-        onSaveSuccess();
-      }
+
     } catch (error) {
-      console.error('Error during operation:', error);
+
+      console.error(error);
+
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: `No se pudo ${isEditMode ? 'actualizar' : 'registrar'} la empresa. Inténtalo de nuevo.`,
+        description: 'No se pudo guardar la empresa',
       });
     }
   }
@@ -99,7 +115,7 @@ function CompanyForm({ onSaveSuccess, companyToEdit }: { onSaveSuccess?: () => v
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="grid grid-cols-1 gap-4 px-6 pb-6">
-        <FormField
+        {/* <FormField
           control={form.control}
           name="companyId"
           render={({ field }) => (
@@ -111,10 +127,10 @@ function CompanyForm({ onSaveSuccess, companyToEdit }: { onSaveSuccess?: () => v
               <FormMessage />
             </FormItem>
           )}
-        />
+        /> */}
         <FormField
           control={form.control}
-          name="name"
+          name="company"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Nombre / Razón Social</FormLabel>
@@ -125,7 +141,7 @@ function CompanyForm({ onSaveSuccess, companyToEdit }: { onSaveSuccess?: () => v
             </FormItem>
           )}
         />
-        <FormField
+        {/* <FormField
           control={form.control}
           name="city"
           render={({ field }) => (
@@ -137,7 +153,7 @@ function CompanyForm({ onSaveSuccess, companyToEdit }: { onSaveSuccess?: () => v
               <FormMessage />
             </FormItem>
           )}
-        />
+        /> */}
         <Button type="submit" className="w-full bg-primary hover:bg-primary/90">
           {isEditMode ? 'Guardar Cambios' : 'Registrar Empresa'}
         </Button>
@@ -147,20 +163,39 @@ function CompanyForm({ onSaveSuccess, companyToEdit }: { onSaveSuccess?: () => v
 }
 
 interface AdvancedFilters {
-    city: string;
     status: string;
 }
 
 export default function EmpresasPage() {
-  const [companies, setCompanies] = useState(initialCompanies.map(c => ({...c, status: 'Active'})));
+  const [companies, setCompanies] = useState<Company[]>([]);
+  const [loading, setLoading] = useState(true);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [companyToEdit, setCompanyToEdit] = useState<any | null>(null);
+  const [companyToEdit, setCompanyToEdit] = useState<Company | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [advancedFilters, setAdvancedFilters] = useState<AdvancedFilters>({
-    city: '',
     status: '',
   });
+
+  const loadCompanies = async () => {
+    try {
+      const data = await companiesService.list();
+      setCompanies(data);
+    } catch(e){
+      console.error('error al cargar empresas', e);
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'No se pudieron cargar las empresas',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+  loadCompanies();
+}, []);
 
   const { toast } = useToast();
 
@@ -169,20 +204,43 @@ export default function EmpresasPage() {
     setIsEditDialogOpen(true);
   };
 
-  const handleDeleteClick = (companyId: number) => {
-    // In a real app, you'd call an API here
-    setCompanies(companies.filter(c => c.id !== companyId));
-    toast({
-        title: 'Empresa Eliminada',
-        description: 'La empresa ha sido eliminada correctamente.',
-    });
+  const handleDeleteClick = async (companyId: number) => {
+    try {
+      await companiesService.delete(companyId);
+      setCompanies(prev => prev.filter(c => c.companyId !== companyId));
+      
+      toast({
+        title: 'Empresa eliminada',
+        description: 'La empresa ha sido eliminada correctamente',
+      });
+    } catch (e){
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'No se pudo eliminar la empresa',
+      })
+    } finally {
+
+    }
   }
 
-  const handleSaveSuccess = () => {
+  const handleSaveSuccess = (company: Company, mode: 'create' | 'edit') => {
+    if (mode === 'create') {
+      setCompanies(prev => [...prev, company]);
+    }
+
+    if (mode === 'edit'){
+      setCompanies(prev => 
+        prev.map(c => 
+          c.companyId === company.companyId ||
+          c.companyId < 0
+            ? company : c)
+      );
+    }
+
     setIsCreateDialogOpen(false);
     setIsEditDialogOpen(false);
     setCompanyToEdit(null);
-    // Here you would refetch the data from your backend
   };
 
   const handleAdvancedFilterChange = (filterName: keyof AdvancedFilters, value: string) => {
@@ -190,13 +248,12 @@ export default function EmpresasPage() {
   };
 
   const clearAdvancedFilters = () => {
-    setAdvancedFilters({ city: '', status: '' });
+    setAdvancedFilters({ status: '' });
   };
 
   const filteredCompanies = useMemo(() => {
     return companies.filter(company => {
         // Advanced filters
-        const matchesCity = advancedFilters.city ? company.city === advancedFilters.city : true;
         const matchesStatus = advancedFilters.status ? company.status === advancedFilters.status : true;
 
         // Simple search term filter
@@ -204,7 +261,7 @@ export default function EmpresasPage() {
             String(value).toLowerCase().includes(searchTerm.toLowerCase())
         ) : true;
 
-        return matchesCity && matchesStatus && matchesSearchTerm;
+        return matchesStatus && matchesSearchTerm;
     });
   }, [searchTerm, companies, advancedFilters]);
 
@@ -261,12 +318,12 @@ export default function EmpresasPage() {
                             </AccordionTrigger>
                             <AccordionContent className="pt-4">
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                    <Select value={advancedFilters.city} onValueChange={(value) => handleAdvancedFilterChange('city', value)}>
+                                    {/* <Select value={advancedFilters.city} onValueChange={(value) => handleAdvancedFilterChange('city', value)}>
                                         <SelectTrigger><SelectValue placeholder="Ciudad" /></SelectTrigger>
                                         <SelectContent>
                                             {[...new Set(companies.map(c => c.city))].map(city => <SelectItem key={city} value={city}>{city}</SelectItem>)}
                                         </SelectContent>
-                                    </Select>
+                                    </Select> */}
                                     <Select value={advancedFilters.status} onValueChange={(value) => handleAdvancedFilterChange('status', value)}>
                                         <SelectTrigger><SelectValue placeholder="Estado" /></SelectTrigger>
                                         <SelectContent>
@@ -290,26 +347,24 @@ export default function EmpresasPage() {
                     <TableRow>
                       <TableHead>Empresa</TableHead>
                       <TableHead>ID Empresa</TableHead>
-                      <TableHead>Ciudad</TableHead>
                       <TableHead>Estado</TableHead>
                       <TableHead className="text-right">Acciones</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {filteredCompanies.map((company) => (
-                      <TableRow key={company.id}>
+                      <TableRow key={company.companyId}>
                         <TableCell>
                           <div className="flex items-center gap-3">
                              <Avatar className="h-9 w-9">
-                                <AvatarFallback>{company.name.charAt(0)}</AvatarFallback>
+                                <AvatarFallback>{company.company.charAt(0)}</AvatarFallback>
                              </Avatar>
                              <div className="grid gap-0.5">
-                                <p className="font-medium">{company.name}</p>
+                                <p className="font-medium">{company.company}</p>
                              </div>
                           </div>
                         </TableCell>
-                        <TableCell>{(company as any).companyId}</TableCell>
-                        <TableCell>{company.city}</TableCell>
+                        <TableCell>EMP-{String(company.companyId).padStart(4, '0')}</TableCell>
                         <TableCell>
                           <Badge variant={company.status === 'Active' ? 'default' : 'destructive'}>
                             {company.status}
@@ -346,12 +401,12 @@ export default function EmpresasPage() {
                                             <AlertDialogHeader>
                                             <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
                                             <AlertDialogDescription>
-                                                Esta acción no se puede deshacer. Se eliminará permanentemente la empresa <span className="font-semibold">{company.name}</span>.
+                                                Esta acción no se puede deshacer. Se eliminará permanentemente la empresa <span className="font-semibold">{company.company}</span>.
                                             </AlertDialogDescription>
                                             </AlertDialogHeader>
                                             <AlertDialogFooter>
                                             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                            <AlertDialogAction onClick={() => handleDeleteClick(company.id)}>Confirmar</AlertDialogAction>
+                                            <AlertDialogAction onClick={() => handleDeleteClick(company.companyId)}>Confirmar</AlertDialogAction>
                                             </AlertDialogFooter>
                                         </AlertDialogContent>
                                     </AlertDialog>

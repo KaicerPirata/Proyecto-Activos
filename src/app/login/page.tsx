@@ -1,6 +1,10 @@
 
 'use client';
 
+// import { login } from '@/services/auth.service';
+import { saveSession } from '@/lib/session';
+import { usersService } from '@/services/users.service';
+
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -27,67 +31,47 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Box, Loader2, X } from 'lucide-react';
 import RegisterForm from '@/components/auth/register-form';
-import { companies } from '@/lib/mock-data';
+// import { companies } from '@/lib/mock-data';
+import { logUser } from '@/types/auth.types';
 
-const users = {
-    '94432420': {
-        password: 'wpq12345',
-        name: 'Whashintong Palma',
-        role: 'admin',
-        idNumber: '94432420',
-        email: 'fminformaticaytecnologia@gmail.com',
-    },
-    '1144172797': {
-        password: '1144172797',
-        name: 'William Aguilera',
-        role: 'tecnico',
-        idNumber: '1144172797',
-        email: 'sistemas@wfm.com'
-    },
-    '123456789': {
-        password: '123456789',
-        name: 'Daniela Manyoma',
-        role: 'estandar',
-        idNumber: '123456789',
-        email: 'estandar@user.com'
-    }
-}
 
 export default function LoginPage() {
   const router = useRouter();
   const { toast } = useToast();
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  // const [userId, setUserId] = useState('');
+  // const [password, setPassword] = useState('');
+  const [user, setUser] = useState<logUser>({
+    cedula: '',
+    password: ''
+  });
   const [isLoading, setIsLoading] = useState(false);
   const [isForgotOpen, setIsForgotOpen] = useState(false);
   const [forgotEmail, setForgotEmail] = useState('');
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
-    setTimeout(() => {
-      const user = (users as Record<string, any>)[username];
-      if (user && user.password === password) {
-        toast({
-          title: 'Inicio de Sesión Exitoso',
-          description: `Bienvenido, ${user.name}.`,
-        });
-        localStorage.setItem('isAuthenticated', 'true');
-        localStorage.setItem('userRole', user.role);
-        localStorage.setItem('userName', user.name);
-        localStorage.setItem('userIdNumber', user.idNumber);
-        localStorage.setItem('userEmail', user.email);
-        router.replace('/');
-      } else {
-        toast({
-          variant: 'destructive',
-          title: 'Error de Autenticación',
-          description: 'Usuario o contraseña incorrectos.',
-        });
-        setIsLoading(false);
-      }
-    }, 1000);
+    try {
+      const response = await usersService.login(user);
+
+      saveSession(response);
+
+      toast({
+        title: 'Inicio de sesion Exitoso',
+        description: `Bienvenido, ${response.user.name}`,
+      });
+
+      window.location.replace('/');
+    } catch (error: any) {
+      toast({
+        variant: 'destructive',
+        title: 'Error de Autenticación',
+        description: error?.message || 'Usuario o contraseña incorrectos.',
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
   
   const handleForgotPassword = () => {
@@ -121,14 +105,18 @@ export default function LoginPage() {
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="username">Usuario</Label>
+              <Label htmlFor="userId">Usuario</Label>
               <Input
-                id="username"
+                id="userId"
                 type="text"
-                placeholder="Tu ID de usuario"
+                placeholder="Tu documento"
                 required
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                value={user.cedula}
+                onChange={(e) => setUser({
+                      ...user,
+                      cedula: Number(e.target.value)
+                  })
+                }
                 disabled={isLoading}
               />
             </div>
@@ -171,8 +159,12 @@ export default function LoginPage() {
                 id="password"
                 type="password"
                 required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                value={user.password}
+                onChange={(e) => setUser({
+                      ...user,
+                      password: e.target.value
+                  })
+                }
                 disabled={isLoading}
               />
             </div>

@@ -1,6 +1,7 @@
-
-
 'use client';
+
+import { usersService } from '@/services/users.service';
+import { use, useEffect, useReducer } from 'react';
 
 import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
@@ -34,221 +35,133 @@ import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from '@/comp
 import { Input } from '@/components/ui/input';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-
-// Mock data for users
-const initialUsers = [
-  {
-    id: 1,
-    name: 'Whashintong Palma',
-    email: 'fminformaticaytecnologia@gmail.com',
-    role: 'Admin',
-    status: 'Active',
-    company: 'WFM',
-    idNumber: '94432420',
-    firstName: 'Whashintong',
-    lastName: 'Palma',
-    city: 'Cali',
-    location: 'Sede Principal',
-    department: 'Tecnología',
-  },
-  {
-    id: 2,
-    name: 'William Aguilera',
-    email: 'sistemas@wfm.com',
-    role: 'Tecnico',
-    status: 'Active',
-    company: 'WFM',
-    idNumber: '1144172797',
-    firstName: 'William',
-    lastName: 'Aguilera',
-    city: 'Cali',
-    location: 'Sede Principal',
-    department: 'Tecnología',
-  },
-  {
-    id: 3,
-    name: 'Dylam Moralez',
-    email: 'sistemas@wfm.com',
-    role: 'Tecnico',
-    status: 'Active',
-    company: 'WFM',
-    idNumber: '555555555',
-    firstName: 'Dylam',
-    lastName: 'Moralez',
-    city: 'Cali',
-    location: 'Planta',
-    department: 'Operaciones',
-  },
-  {
-    id: 4,
-    name: 'Carlos Fierro',
-    email: 'sistemas@wfm.com',
-    role: 'Tecnico',
-    status: 'Active',
-    company: 'WFM',
-    idNumber: '666666666',
-    firstName: 'Carlos',
-    lastName: 'Fierro',
-    city: 'Bogota',
-    location: 'Oficina Central',
-    department: 'Ventas',
-  },
-  {
-    id: 5,
-    name: 'Daniela Manyoma',
-    email: 'estandar@user.com',
-    role: 'Estandar',
-    status: 'Active',
-    company: 'HYCO',
-    idNumber: '123456789',
-    firstName: 'Daniela',
-    lastName: 'Manyoma',
-    city: 'Cali',
-    location: 'Oficina',
-    department: 'Contabilidad',
-  },
-  {
-    id: 6,
-    name: 'Johana Fuentes',
-    email: 'J_fuentes@pallomaro.com',
-    role: 'Admin',
-    status: 'Active',
-    company: 'PALLOMARO S.A',
-    idNumber: '111111111',
-    firstName: 'Johana',
-    lastName: 'Fuentes',
-    city: 'Cali',
-    location: 'Sede Principal',
-    department: 'Tecnología',
-  },
-  {
-    id: 7,
-    name: 'Claudia Moreno',
-    email: 'C_moreno@hyco.co.com',
-    role: 'Admin',
-    status: 'Active',
-    company: 'HYCO',
-    idNumber: '222222222',
-    firstName: 'Claudia',
-    lastName: 'Moreno',
-    city: 'Cali',
-    location: 'Oficina Central',
-    department: 'Gerencia',
-  },
-  {
-    id: 8,
-    name: 'Wilson Rojas',
-    email: 'Wilson_r@fundimetal.com',
-    role: 'Admin',
-    status: 'Active',
-    company: 'FUNDIMETAL',
-    idNumber: '333333333',
-    firstName: 'Wilson',
-    lastName: 'Rojas',
-    city: 'Cali',
-    location: 'Planta',
-    department: 'Operaciones',
-  },
-];
-
-// Mock data for companies
-const companies = [
-    {
-      id: 1,
-      name: 'PALLOMARO S.A',
-    },
-    {
-      id: 2,
-      name: 'HYCO',
-    },
-    {
-      id: 3,
-      name: 'FUNDIMETAL',
-    },
-    {
-      id: 4,
-      name: 'WFM',
-    },
-];
-
-const getInitials = (name: string) => {
-    if (!name) return '';
-    const names = name.split(' ');
-    if (names.length > 1) {
-        return `${names[0][0]}${names[names.length - 1][0]}`.toUpperCase();
-    }
-    return name.substring(0, 2).toUpperCase();
-}
-
-interface AdvancedFilters {
-    company: string;
-    role: string;
-    status: string;
-}
+import { DetailedUser, ListUser } from '@/types/user.types';
+import { useCompanies } from '@/hooks/useCompanies';
 
 export default function UsersPage() {
-  const [users, setUsers] = useState(initialUsers);
+  const [users, setUsers] = useState<ListUser[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pagination, setPagination] = useState({
+      current_page: 1,
+      last_page: 1,
+      per_page: 15,
+      total: 0,
+    });
+  const [advancedFilters, setAdvancedFilters] = useState({
+      companyId: '',
+      areaId: '',
+      rolId: '',
+      status: '',
+      search: '',
+    });
+  const { companies, companiesLoading } = useCompanies();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [userToEdit, setUserToEdit] = useState<any | null>(null);
+  const [userToEdit, setUserToEdit] = useState<DetailedUser | undefined>(undefined);
   const [searchTerm, setSearchTerm] = useState('');
-  const [advancedFilters, setAdvancedFilters] = useState<AdvancedFilters>({
-    company: '',
-    role: '',
-    status: '',
-  });
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const { toast } = useToast();
 
-  const handleEditClick = (user: any) => {
-    setUserToEdit(user);
+  // Fetch users
+    const loadUsers = async () => {
+      setIsLoading(true);
+
+      try {
+        const response = await usersService.list({
+          page: currentPage,
+          companyId: advancedFilters.companyId ? Number(advancedFilters.companyId) : undefined,
+          rolId: advancedFilters.rolId,
+          status: advancedFilters.status,
+          search: debouncedSearch
+        });
+        setUsers(response.data);
+        setPagination(response.meta);
+      } catch {
+        toast({
+          variant: 'destructive',
+          title: 'Error',
+          description: 'No se pudieron cargar los usuarios.',
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+  useEffect(() => {
+    loadUsers();
+  }, [currentPage, debouncedSearch, advancedFilters]);
+
+  const handleEditClick = async (userId: number) => {
+    const res = await usersService.get(userId);
+    setUserToEdit(res.data);
     setIsEditDialogOpen(true);
   };
 
-  const handleDeleteClick = (userId: number, userName: string) => {
-    // In a real app, you'd call an API here
-    setUsers(users.filter(u => u.id !== userId));
-    toast({
-        title: 'Usuario Eliminado',
-        description: `El usuario ${userName} ha sido eliminado.`,
-    });
+  const handleDelete = async (userId: number) => {
+    if(!confirm('¿Seguro que deseas eliminar este usuario?')) return;
+
+    try {
+      await usersService.delete(userId);
+
+      setUsers(prev => {
+        const updated = prev.filter(u => u.userId !== userId);
+
+        if(updated.length === 0 && currentPage > 1) {
+          setCurrentPage(p => p - 1);
+        }
+
+        toast({
+            title: 'Usuario Eliminado',
+            description: `El usuario ha sido eliminado correctamente.`
+        });
+
+        return updated;
+      });
+    } catch (error) {
+      console.error(error);
+
+       toast({
+                variant: 'destructive',
+                title: 'Error',
+                description: 'No se pudo eliminar el usuario',
+            });
+    }
   };
 
   const handleSaveSuccess = () => {
     setIsCreateDialogOpen(false);
     setIsEditDialogOpen(false);
-    setUserToEdit(null);
+    setUserToEdit(undefined);
     // Here you would refetch the data from your backend
   };
 
-  const handleAdvancedFilterChange = (filterName: keyof AdvancedFilters, value: string) => {
-    setAdvancedFilters(prev => ({ ...prev, [filterName]: value }));
+  const handleAdvancedFilterChange = (key: string, value: any) => {
+    setAdvancedFilters(prev => ({ 
+      ...prev, 
+      [key]: value || undefined}));
   };
 
   const clearAdvancedFilters = () => {
-    setAdvancedFilters({ company: '', role: '', status: '' });
+    setAdvancedFilters({ companyId: '', areaId: '', rolId: '', status: '', search: ''});
   };
 
-  const filteredUsers = useMemo(() => {
-    return users.filter(user => {
-        const matchesCompany = advancedFilters.company ? user.company === advancedFilters.company : true;
-        const matchesRole = advancedFilters.role ? user.role === advancedFilters.role : true;
-        const matchesStatus = advancedFilters.status ? user.status === advancedFilters.status : true;
+    // DEBOUNCE SEARCH
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+        setDebouncedSearch(searchTerm);
+    }, 600); 
 
-        const matchesSearchTerm = searchTerm ? Object.values(user).some(value =>
-            String(value).toLowerCase().includes(searchTerm.toLowerCase())
-        ) : true;
+    return () => clearTimeout(timeout);
+  }, [searchTerm]);
 
-        return matchesCompany && matchesRole && matchesStatus && matchesSearchTerm;
-    });
-  }, [searchTerm, users, advancedFilters]);
-
-  const getRoleBadgeVariant = (role: string) => {
-    switch (role) {
-      case 'Admin':
+  const getRoleBadgeVariant = (rolId: string) => {
+    switch (rolId) {
+      case 'ADM':
         return 'default';
-      case 'Tecnico':
+      case 'TEC':
         return 'secondary';
-      case 'Estandar':
+      case 'PER':
         return 'outline';
       default:
         return 'default';
@@ -276,7 +189,7 @@ export default function UsersPage() {
                     Introduce los datos para registrar un nuevo usuario en el sistema.
                   </DialogDescription>
                 </DialogHeader>
-                <RegisterForm onRegisterSuccess={handleSaveSuccess} companies={companies} />
+                <RegisterForm onRegisterSuccess={handleSaveSuccess}/>
                  <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
                     <X className="h-4 w-4" />
                     <span className="sr-only">Close</span>
@@ -295,7 +208,7 @@ export default function UsersPage() {
                         placeholder="Buscar usuario por nombre, email, empresa..."
                         className="w-full appearance-none bg-background pl-8 shadow-none md:w-1/3"
                         value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
+                        onChange={(e) => {setCurrentPage(1); setSearchTerm(e.target.value);}}
                         />
                     </div>
                      <Accordion type="single" collapsible className="w-full">
@@ -308,22 +221,22 @@ export default function UsersPage() {
                             </AccordionTrigger>
                             <AccordionContent className="pt-4">
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                    <Select value={advancedFilters.company} onValueChange={(value) => handleAdvancedFilterChange('company', value)}>
+                                    <Select value={advancedFilters.companyId || ""} onValueChange={(value) => handleAdvancedFilterChange('companyId', value)}>
                                         <SelectTrigger>
                                             <SelectValue placeholder="Empresa" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {companies.map(comp => <SelectItem key={comp.id} value={comp.name}>{comp.name}</SelectItem>)}
+                                            {companies.map(comp => <SelectItem key={comp.companyId} value={String(comp.companyId)}>{comp.company}</SelectItem>)}
                                         </SelectContent>
                                     </Select>
-                                     <Select value={advancedFilters.role} onValueChange={(value) => handleAdvancedFilterChange('role', value)}>
+                                     <Select value={advancedFilters.rolId} onValueChange={(value) => handleAdvancedFilterChange('rolId', value)}>
                                         <SelectTrigger>
                                             <SelectValue placeholder="Rol" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="Admin">Admin</SelectItem>
-                                            <SelectItem value="Tecnico">Técnico</SelectItem>
-                                            <SelectItem value="Estandar">Estándar</SelectItem>
+                                            <SelectItem value="ADM">Admin</SelectItem>
+                                            <SelectItem value="TEC">Técnico</SelectItem>
+                                            <SelectItem value="PER">Estándar</SelectItem>
                                         </SelectContent>
                                     </Select>
                                     <Select value={advancedFilters.status} onValueChange={(value) => handleAdvancedFilterChange('status', value)}>
@@ -357,12 +270,12 @@ export default function UsersPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredUsers.map((user) => (
-                      <TableRow key={user.id}>
+                    {users.map((user) => (
+                      <TableRow key={user.userId}>
                         <TableCell>
                           <div className="flex items-center gap-3">
                              <Avatar className="h-9 w-9">
-                                <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
+                                <AvatarFallback>{user.initials}</AvatarFallback>
                              </Avatar>
                              <div className="grid gap-0.5">
                                 <p className="font-medium">{user.name}</p>
@@ -372,7 +285,7 @@ export default function UsersPage() {
                         </TableCell>
                         <TableCell>{user.company}</TableCell>
                         <TableCell>
-                            <Badge variant={getRoleBadgeVariant(user.role)}>{user.role}</Badge>
+                            <Badge variant={getRoleBadgeVariant(user.rol)}>{user.rol}</Badge>
                         </TableCell>
                         <TableCell>
                           <Badge variant={user.status === 'Active' ? 'default' : 'destructive'}>
@@ -384,7 +297,7 @@ export default function UsersPage() {
                                 <div className="flex justify-end gap-2">
                                      <Tooltip>
                                         <TooltipTrigger asChild>
-                                           <Button variant="outline" size="icon" onClick={() => handleEditClick(user)}>
+                                           <Button variant="outline" size="icon" onClick={() => handleEditClick(user.userId)}>
                                                 <Pencil className="h-4 w-4" />
                                             </Button>
                                         </TooltipTrigger>
@@ -415,7 +328,7 @@ export default function UsersPage() {
                                             </AlertDialogHeader>
                                             <AlertDialogFooter>
                                             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                            <AlertDialogAction onClick={() => handleDeleteClick(user.id, user.name)}>Confirmar</AlertDialogAction>
+                                            <AlertDialogAction onClick={() => handleDelete(user.userId)}>Confirmar</AlertDialogAction>
                                             </AlertDialogFooter>
                                         </AlertDialogContent>
                                     </AlertDialog>
@@ -426,6 +339,29 @@ export default function UsersPage() {
                     ))}
                   </TableBody>
                 </Table>
+              </div>
+              <div className='flex items-center justify-between pt-4'>
+                    <p className='text-sm text-muted-foreground'>
+                        Página {pagination.current_page} de {pagination.last_page}
+                    </p>
+                    <div className='flex gap-2'>
+                        <Button 
+                          variant="outline"
+                          size="sm"
+                          disabled={pagination.current_page === 1}
+                          onClick={() => setCurrentPage((p) => p - 1)}
+                        >
+                          anterior
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={pagination.current_page === pagination.last_page}
+                          onClick={() => setCurrentPage((p) => p + 1)}
+                        > 
+                          siguiente
+                        </Button>
+                    </div>
               </div>
             </CardContent>
           </Card>
@@ -441,7 +377,7 @@ export default function UsersPage() {
                     Modifica los datos del usuario. La contraseña no se puede editar aquí.
                   </DialogDescription>
                 </DialogHeader>
-                <RegisterForm onRegisterSuccess={handleSaveSuccess} companies={companies} userToEdit={userToEdit} />
+                <RegisterForm onRegisterSuccess={handleSaveSuccess} userToEdit={userToEdit} />
                  <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
                     <X className="h-4 w-4" />
                     <span className="sr-only">Close</span>
