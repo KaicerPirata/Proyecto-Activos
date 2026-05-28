@@ -27,35 +27,46 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
+import { getSession } from '@/lib/session';
+import { AuthUser } from '@/types/auth.types';
 
 export default function Header() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
-  const [initials, setInitials] = useState('');
-  const [userName, setUserName] = useState('');
+  const [user, setUser] = useState<AuthUser | null>(null);
 
   useEffect(() => {
-    const name = localStorage.getItem('userName') || '';
-    setUserName(name);
-    if (name) {
-      const names = name.split(' ');
-      if (names.length > 1) {
-        setInitials(`${names[0][0]}${names[names.length - 1][0]}`);
-      } else if (names.length === 1 && names[0].length > 0) {
-        setInitials(names[0].substring(0, 2));
-      } else {
-        setInitials('');
-      }
+    // const name = localStorage.getItem('userName') || '';
+    const session = getSession();
+
+    if(!session) {
+      console.log(session);
+      console.log('no esta cargando');
+      return;
     }
+
+    setUser(session.user);
   }, []);
 
+    function nameInitials(name?: string) {
+      if(!name?.trim()) return "NA";
+
+      const names = name.trim().split(" ");
+
+      if(names.length === 1){
+        return names[0][0];
+      }
+
+        return `${names[0][0]}${names[names.length - 1][0]}`;
+  }
+
   const handleLogout = () => {
-    localStorage.removeItem('isAuthenticated');
-    localStorage.removeItem('userRole');
-    localStorage.removeItem('userName');
-    localStorage.removeItem('userIdNumber');
-    localStorage.removeItem('userEmail');
+    // localStorage.removeItem('isAuthenticated');
+    // localStorage.removeItem('userRole');
+    // localStorage.removeItem('userName');
+    // localStorage.removeItem('userIdNumber');
+    // localStorage.removeItem('userEmail');
     router.replace('/login');
     toast({
       title: 'Sesión Cerrada',
@@ -75,7 +86,7 @@ export default function Header() {
 
   return (
     <header className="flex h-14 items-center gap-4 border-b bg-card px-4 sticky top-0 z-30 lg:h-[60px] lg:px-6">
-      <SidebarTrigger className="md:hidden"/>
+      {/* <SidebarTrigger className="md:hidden"/> */}
       <div className="w-full flex-1">
         {/* Search bar removed as requested */}
       </div>
@@ -85,13 +96,13 @@ export default function Header() {
           <DropdownMenuTrigger asChild>
             <Button variant="secondary" size="icon" className="rounded-full">
               <Avatar className="h-8 w-8">
-                <AvatarFallback>{initials.toUpperCase()}</AvatarFallback>
+                <AvatarFallback>{nameInitials(user?.name).toUpperCase()}</AvatarFallback>
               </Avatar>
               <span className="sr-only">Toggle user menu</span>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuLabel>{userName}</DropdownMenuLabel>
+            <DropdownMenuLabel>{user?.name}</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DialogTrigger asChild>
               <DropdownMenuItem onSelect={(e) => e.preventDefault()}>

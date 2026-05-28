@@ -1,5 +1,3 @@
-# Firebase Studio
+# Asset Managment Project
 
-This is a NextJS starter in Firebase Studio.
-
-To get started, take a look at src/app/page.tsx.
+NextJs project about asset managment. Under corrections and for academic purpouses.

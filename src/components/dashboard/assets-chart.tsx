@@ -1,7 +1,7 @@
 
 "use client"
 
-import { useMemo } from "react";
+// import { useMemo } from "react";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts"
 
 import {
@@ -17,54 +17,60 @@ import {
   ChartTooltipContent,
   ChartConfig,
 } from "@/components/ui/chart"
-import { users } from "@/lib/mock-data";
+// import { AssetBinding } from "next/dist/build/webpack/loaders/get-module-build-info";
 
 const chartConfig = {
-  assets: {
+  total: {
     label: "Activos",
     color: "hsl(var(--primary))",
   },
 } satisfies ChartConfig
 
-interface AssetsChartProps {
-    assets: any[];
+interface AssetsByArea {
+  area: string;
+  total: number;
 }
 
-export default function AssetsChart({ assets }: AssetsChartProps) {
+interface AssetsChartProps {
+    data: AssetsByArea[];
+}
 
-  const chartData = useMemo(() => {
-    const departmentData: { [key: string]: number } = {};
+export default function AssetsChart({ data }: AssetsChartProps) {
 
-    assets.forEach(asset => {
-      const user = users.find(u => u.name === asset.responsable);
-      // Fallback to 'Sin Asignar' if user not found or department not specified
-      const department = user?.department || 'Sin Asignar';
-      if (departmentData[department]) {
-        departmentData[department]++;
-      } else {
-        departmentData[department] = 1;
-      }
-    });
+  // const chartData = useMemo(() => {
+  //   const departmentData: { [key: string]: number } = {};
 
-    return Object.keys(departmentData).map(department => ({
-      department,
-      assets: departmentData[department]
-    }));
+  //   assets.forEach(asset => {
+  //     const user = users.find(u => u.name === asset.responsable);
+  //     // Fallback to 'Sin Asignar' if user not found or department not specified
+  //     const department = user?.department || 'Sin Asignar';
+  //     if (departmentData[department]) {
+  //       departmentData[department]++;
+  //     } else {
+  //       departmentData[department] = 1;
+  //     }
+  //   });
 
-  }, [assets]);
+  //   return Object.keys(departmentData).map(department => ({
+  //     department,
+  //     assets: departmentData[department]
+  //   }));
+
+  // }, [assets]);
   
   return (
     <Card className="h-full">
       <CardHeader>
-        <CardTitle className="font-headline">Activos por Departamento</CardTitle>
-        <CardDescription>Un resumen de la distribución de activos.</CardDescription>
+        <CardTitle className="font-headline">Activos por Área</CardTitle>
+        <CardDescription>Un resumen de la distribución de activos por área.</CardDescription>
       </CardHeader>
+
       <CardContent>
         <ChartContainer config={chartConfig} className="min-h-[300px] w-full">
-          <BarChart accessibilityLayer data={chartData}>
+          <BarChart accessibilityLayer data={data}>
             <CartesianGrid vertical={false} />
             <XAxis
-              dataKey="department"
+              dataKey="area"
               tickLine={false}
               tickMargin={10}
               axisLine={false}
@@ -75,7 +81,7 @@ export default function AssetsChart({ assets }: AssetsChartProps) {
               cursor={false}
               content={<ChartTooltipContent hideLabel />}
             />
-            <Bar dataKey="assets" fill="var(--color-assets)" radius={8} />
+            <Bar dataKey="total" fill="var(--color-assets)" radius={8} />
           </BarChart>
         </ChartContainer>
       </CardContent>

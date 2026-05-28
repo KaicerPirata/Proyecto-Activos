@@ -18,6 +18,18 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "../ui/separator";
+import { Company } from "@/types/company.types";
+import { City } from "@/types/city.type";
+import { Location } from "@/types/location.type";
+import { Area } from "@/types/area.type";
+import { useEffect, useState } from "react";
+import { citiesService } from "@/services/cities.service";
+import { areasService } from "@/services/areas.service";
+import { locationService } from "@/services/locations.service";
+import { useCompanies } from "@/hooks/useCompanies";
+import { useAreas } from "@/hooks/useAreas";
+import { useCities } from "@/hooks/useCities";
+// import { watch } from "fs";
 
 // Mock onRegister function
 const onRegister = (data: RegisterSchema) => {
@@ -27,11 +39,16 @@ const onRegister = (data: RegisterSchema) => {
 
 interface RegisterFormProps {
     onRegisterSuccess?: () => void;
-    companies: { id: number; name: string }[];
-    userToEdit?: Partial<RegisterSchema> & { idNumber?: string, email?: string, role?: string };
+    userToEdit?: Partial<RegisterSchema>;
 }
 
-export default function RegisterForm({ onRegisterSuccess, companies, userToEdit }: RegisterFormProps) {
+export default function RegisterForm({ onRegisterSuccess, userToEdit }: RegisterFormProps) {
+
+  const { companies, companiesLoading } = useCompanies();
+  const { areas, areasLoading } = useAreas();
+  const { cities, citiesLoading} = useCities();
+//   const [cities, setCities] = useState<City[]>([]);
+  const [locations, setLocations] = useState<Location[]>([]);
   const { toast } = useToast();
   const isEditMode = !!userToEdit;
 
@@ -41,20 +58,23 @@ export default function RegisterForm({ onRegisterSuccess, companies, userToEdit 
   const form = useForm<RegisterSchema>({
     resolver: zodResolver(finalSchema),
     defaultValues: userToEdit || {
-      company: "",
-      idNumber: "",
-      firstName: "",
-      middleName: "",
-      lastName: "",
-      secondLastName: "",
-      city: "",
-      location: "",
-      department: "",
+      cedula: undefined,
+      rolId: undefined,
+      firstname: "",
+      middlename: "",
+      lastname: "",
+      secondLastname: "",
       email: "",
-      password: "",
-      role: 'Estandar',
+      companyId: undefined,
+      cityId: undefined,
+      locationId: undefined,
+      areaId: undefined,
+      password: ""
     },
   });
+
+  const selectedCompany = form.watch("companyId");
+  const selectedCity = form.watch("cityId");
 
   function onSubmit(data: RegisterSchema) {
     try {
@@ -85,17 +105,90 @@ export default function RegisterForm({ onRegisterSuccess, companies, userToEdit 
     }
   }
 
+  // Fetch locations of the selected company and city
+  useEffect(() => {
+    const fetchLocations = async () => {
+        if(!selectedCompany || !selectedCity) {
+            setLocations([]);
+            form.setValue("locationId", undefined);
+            return;
+        }
+        
+        try{
+            const response = await locationService.list(selectedCompany, selectedCity);
+
+            setLocations(response.data);
+            form.setValue("locationId", undefined); // reset cuando cambia el filtro 
+        } catch (e) {
+            console.log(e);
+            toast({
+                variant: 'destructive',
+                title: 'Error',
+                description: 'No se pudieron cargar las ubicaciones'
+            });
+        }
+    };
+
+    fetchLocations();
+
+    }, [selectedCompany, selectedCity])
+
+  // Fetch cities to select
+//   useEffect(() => {
+//     const fetchCities = async () => {
+//         try {
+//             const response = await citiesService.list();
+//             setCities(response.data);
+//         } catch (e) {
+//             console.error(e);
+//             toast({
+//                 variant: 'destructive',
+//                 title: 'Error',
+//                 description: 'No se pudieron cargar las ciudades'
+//             });
+//         }
+//     };
+
+//     fetchCities();
+//   }, []);
+
+  // Fetch areas to select
+//   useEffect(() => {
+//     const fetchAreas = async () => {
+//         try {
+//             const response = await areasService.list();
+//             setAreas(response.data);
+//         } catch (e) {
+//             console.error(e);
+//             toast({
+//                 variant: 'destructive',
+//                 title: 'Error',
+//                 description: 'No se pudieron cargar las empresas'
+//             });
+//         }
+//     };
+
+//     fetchAreas();
+//   }, []);
+  
+
+  useEffect(() => {
+    if(userToEdit) {
+        form.reset(userToEdit);
+    }
+  }, [userToEdit, form])
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="px-6 pb-6 space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField
                 control={form.control}
-                name="company"
+                name="companyId"
                 render={({ field }) => (
                     <FormItem>
                     <FormLabel>Empresa a la que pertenece</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select value={field.value?.toString()} onValueChange={(value) => field.onChange(Number(value))}>
                         <FormControl>
                         <SelectTrigger>
                             <SelectValue placeholder="Selecciona una empresa" />
@@ -103,7 +196,7 @@ export default function RegisterForm({ onRegisterSuccess, companies, userToEdit 
                         </FormControl>
                         <SelectContent>
                             {companies.map(company => (
-                                <SelectItem key={company.id} value={company.name}>{company.name}</SelectItem>
+                                <SelectItem key = {company.companyId.toString()} value={company.companyId.toString()}>{company.company}</SelectItem>
                             ))}
                         </SelectContent>
                     </Select>
@@ -113,20 +206,20 @@ export default function RegisterForm({ onRegisterSuccess, companies, userToEdit 
             />
              <FormField
                 control={form.control}
-                name="role"
+                name="rolId"
                 render={({ field }) => (
                     <FormItem>
                     <FormLabel>Rol</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select value= {field.value} onValueChange={field.onChange}>
                         <FormControl>
                         <SelectTrigger>
                             <SelectValue placeholder="Selecciona un rol" />
                         </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                            <SelectItem value="Admin">Admin</SelectItem>
-                            <SelectItem value="Tecnico">Técnico</SelectItem>
-                            <SelectItem value="Estandar">Estándar</SelectItem>
+                            <SelectItem value="ADM">Admin</SelectItem>
+                            <SelectItem value="TEC">Técnico</SelectItem>
+                            <SelectItem value="PER">Estándar</SelectItem>
                         </SelectContent>
                     </Select>
                     <FormMessage />
@@ -134,14 +227,11 @@ export default function RegisterForm({ onRegisterSuccess, companies, userToEdit 
                 )}
             />
         </div>
-
-
         <Separator />
-        
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField
             control={form.control}
-            name="idNumber"
+            name="cedula"
             render={({ field }) => (
                 <FormItem>
                 <FormLabel>Número de identificación</FormLabel>
@@ -167,7 +257,7 @@ export default function RegisterForm({ onRegisterSuccess, companies, userToEdit 
             />
             <FormField
             control={form.control}
-            name="firstName"
+            name="firstname"
             render={({ field }) => (
                 <FormItem>
                 <FormLabel>Primer nombre</FormLabel>
@@ -180,7 +270,7 @@ export default function RegisterForm({ onRegisterSuccess, companies, userToEdit 
             />
             <FormField
             control={form.control}
-            name="middleName"
+            name="middlename"
             render={({ field }) => (
                 <FormItem>
                 <FormLabel>Segundo nombre (Opcional)</FormLabel>
@@ -193,7 +283,7 @@ export default function RegisterForm({ onRegisterSuccess, companies, userToEdit 
             />
             <FormField
                 control={form.control}
-                name="lastName"
+                name="lastname"
                 render={({ field }) => (
                 <FormItem>
                     <FormLabel>Primer apellido</FormLabel>
@@ -206,7 +296,7 @@ export default function RegisterForm({ onRegisterSuccess, companies, userToEdit 
             />
             <FormField
                 control={form.control}
-                name="secondLastName"
+                name="secondLastname"
                 render={({ field }) => (
                 <FormItem>
                     <FormLabel>Segundo apellido (Opcional)</FormLabel>
@@ -219,43 +309,70 @@ export default function RegisterForm({ onRegisterSuccess, companies, userToEdit 
             />
             <FormField
                 control={form.control}
-                name="city"
+                name="cityId"
                 render={({ field }) => (
-                <FormItem>
+                    <FormItem>
                     <FormLabel>Ciudad</FormLabel>
-                    <FormControl>
-                    <Input placeholder="Bogotá" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                </FormItem>
-                )}
-            />
-            <FormField
-                control={form.control}
-                name="location"
-                render={({ field }) => (
-                <FormItem>
-                    <FormLabel>Ubicación</FormLabel>
-                    <FormControl>
-                    <Input placeholder="Cra 1 # 1-1, Zona Centro" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                </FormItem>
-                )}
-            />
-            <FormField
-                control={form.control}
-                name="department"
-                render={({ field }) => (
-                    <FormItem className="md:col-span-2">
-                    <FormLabel>Área o departamento</FormLabel>
-                    <FormControl>
-                        <Input placeholder="Tecnología" {...field} />
-                    </FormControl>
+                    <Select value={field.value} onValueChange={(value) => field.onChange(value)}>
+                        <FormControl>
+                        <SelectTrigger>
+                            <SelectValue placeholder="Selecciona una ciudad" />
+                        </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                            {cities.map(city => (
+                                <SelectItem key = {city.cityId} value={city.cityId}>{city.city}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
                     <FormMessage />
                     </FormItem>
                 )}
-                />
+            />
+            <FormField
+                control={form.control}
+                name="locationId"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Ubicación</FormLabel>
+                    <Select value={field.value?.toString()} onValueChange={(value) => field.onChange(Number(value))}>
+                        <FormControl>
+                        <SelectTrigger>
+                            <SelectValue placeholder="Selecciona una ubicacion" />
+                        </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                            {locations.map(location => (
+                                <SelectItem key = {location.locationId} value={location.locationId.toString()}>{location.locationName}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                    <FormMessage />
+                    </FormItem>
+                )}
+            />
+            <FormField
+                control={form.control}
+                name="areaId"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Area o departamento</FormLabel>
+                    <Select value={field.value?.toString()} onValueChange={(value) => field.onChange(Number(value))}>
+                        <FormControl>
+                        <SelectTrigger>
+                            <SelectValue placeholder="Selecciona un area" />
+                        </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                            {areas.map(area => (
+                                <SelectItem key = {area.areaId} value={area.areaId.toString()}>{area.area}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                    <FormMessage />
+                    </FormItem>
+                )}
+            />
             {!isEditMode && (
                  <FormField
                     control={form.control}
